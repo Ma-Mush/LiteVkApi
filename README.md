@@ -115,7 +115,8 @@ chat | Для беседы вы используете бота или нет (T
 
 # Примеры
 ## Отправка сообщения с тем же текстом, тому же пользователю, что и прислали нам:
-```from LiteVkApi import Vk
+```
+from LiteVkApi import Vk
 Vk.login(твой ид, "твой токен")
 while True:
     if Vk.check_new_msg():
@@ -123,7 +124,8 @@ while True:
         Vk.msg(event.text, event.user_id)
 ```
 ## Простейший бот:
-```from LiteVkApi import Vk
+```
+from LiteVkApi import Vk
 Vk.login(твой ид, "твой токен")
 while True:
     if Vk.check_new_msg():
@@ -135,7 +137,8 @@ while True:
             Vk.msg('Хорошо, а у тебя?', userid)
 ```
 ## Создание, отправка и удаление клавиатуры:
-```from LiteVkApi import Vk
+```
+from LiteVkApi import Vk
 Vk.login(твой ид, "твой токен")
 while True:
     if Vk.check_new_msg():
@@ -148,7 +151,8 @@ while True:
             Vk.delete_keyboard(event.user_id, 'Теперь клавиатура закрыта!')
 ```
 ## Отправка файла и фото:
-```from LiteVkApi import Vk
+```
+from LiteVkApi import Vk
 Vk.login(твой ид, "твой токен")
 while True:
     if Vk.check_new_msg():
