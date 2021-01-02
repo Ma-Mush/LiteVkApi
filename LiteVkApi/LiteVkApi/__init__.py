@@ -201,7 +201,10 @@ class Vk():
         def r(text, userids):
             try:
                 for i in userids:
-                    Vk.msg(text, i, chats)
+                    try:
+                        Vk.msg(text, i, chats)
+                    except:
+                        1
             except:
                 raise ValueError('Ошибка рассылки (mailing):\n=====\nПередан НЕ массив в значение userids или ошибка отправки сообщения\n=====')
         t = Thread(target=r, args=(text, userids))
