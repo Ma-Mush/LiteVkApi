@@ -11,19 +11,20 @@ class Vk():
     ts = ''
     
     def help():
-        print(' 1. login <id_group> <token> <chats=False> <my_key=0> <my_server=0> <my_ts=0> - входит в бота по указанному ID группы и токену. Если бот для беседы - поставьте chats=True и укажите параметры подключения\n \
-    2. msg <text> <userid> <chats=False> - отправляет текст по указанному ID пользователя/чата, если он уже писал боту/бот состоит в беседе и имеет право писать сообщения. \n \
-    3. check_new_msg <chats=False> - проверяет наличие новых сообщений, выдает True/False. \n \
-    4. get_event - возвращает в переменную данные о сообщении. \n \
-    5. send_photo <file_name> <userid> <msg=None> <chats=False> - отправляет фото с компьютера по указанному адресу пользователю с указанным ID/беседе и сообщением (по умолчанию без него) при выполнении условий из функции "msg". \n \
-    6. new_keyboard <dicts> <perm=True> - создает клавиатуру по массиву со словарями, например - [{\'кнопка 1\':\'цвет 1\'}, {\'new_line\':\' \'}, {\'кнопка 2\':\'цвет 2\'}], perm обозначает, будет ли пропадать клавиатура после нажатия на кнопку (при True - не будет). Подробнее можно узнать в документации - !!!ссылку вставить потом!!! \n \
-    7. send_keyboard <keyboard> <userid> <msg=\'Клавиатура!\'> <chats=False> - отправляет пользователю/беседе по ID  указанную клавиатуру, отправляя указанное сообщение\n \
-    8. delete_keyboard <userid> <msg=\'Клавиатура закрыта!\'> <chats=False> - удаляет клавиатуру у указанного пользователя, отправляя указанное сообщение\n \
-    9. send_file <file_name> <userid> <msg=None> <chats=False> - отправляет файл с компьютера по указанному адресу пользователю с указанным ID/беседе и сообщением (по умолчанию без него) при выполнении условий из функции "msg"')
+        print('     1. login <id_group> <token> <chats=False> <my_key=0> <my_server=0> <my_ts=0> - входит в бота по указанному ID группы и токену. Если бот для беседы - поставьте chats=True и укажите параметры подключения\n \
+2. msg <text> <userid> <chats=False> - отправляет текст по указанному ID пользователя/чата, если он уже писал боту/бот состоит в беседе и имеет право писать сообщения. \n \
+3. check_new_msg <chats=False> - проверяет наличие новых сообщений, выдает True/False. \n \
+4. get_event - возвращает в переменную данные о сообщении. \n \
+5. send_photo <file_name> <userid> <msg=None> <chats=False> - отправляет фото с компьютера по указанному адресу пользователю с указанным ID/беседе и сообщением (по умолчанию без него) при выполнении условий из функции "msg". \n \
+6. new_keyboard <dicts> <perm=True> - создает клавиатуру по массиву со словарями, например - [{\'кнопка 1\':\'цвет 1\'}, {\'new_line\':\' \'}, {\'кнопка 2\':\'цвет 2\'}], perm обозначает, будет ли пропадать клавиатура после нажатия на кнопку (при True - не будет). Подробнее можно узнать в документации - !!!ссылку вставить потом!!! \n \
+7. send_keyboard <keyboard> <userid> <msg=\'Клавиатура!\'> <chats=False> - отправляет пользователю/беседе по ID  указанную клавиатуру, отправляя указанное сообщение\n \
+8. delete_keyboard <userid> <msg=\'Клавиатура закрыта!\'> <chats=False> - удаляет клавиатуру у указанного пользователя, отправляя указанное сообщение\n \
+9. send_file <file_name> <userid> <msg=None> <chats=False> - отправляет файл с компьютера по указанному адресу пользователю с указанным ID/беседе и сообщением (по умолчанию без него) при выполнении условий из функции "msg" \n \
+10. mailing <text> <userids> <chats=False> - рассылка по ID пользователей/бесед')
     
     def login(id_group, tok, chats=False, my_key=0, my_server=0, my_ts=0):
-        fun = 'help, login, msg, check_new_msg, get_event, send_photo, new_keyboard, send_keyboard, delete_keyboard. \
-    Чтобы узнать подробнее о командах, вызовите функцию help - Vk.help()'
+        fun = 'help, login, msg, check_new_msg, get_event, send_photo, new_keyboard, send_keyboard, delete_keyboard, send_file.\n\
+Чтобы узнать подробнее о командах, вызовите функцию help - Vk.help()'
         global longpoll, vk, vk_session, server, ts, key
         import vk_api
         vk_session = vk_api.VkApi(token = tok)
@@ -52,7 +53,7 @@ class Vk():
                 raise ValueError('Ошибка отправки сообщения (msg):\n=====\nНе правильно введен параметр chats\n=====')
         except:
             raise ValueError('Ошибка отправки сообщения (msg):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
-    (бот раньше не писал ему сообщения или не находится в беседе)\n=====')
+(бот раньше не писал ему сообщения или не находится в беседе)\n=====')
     def check_new_msg(chat=False):
         from vk_api.longpoll import VkLongPoll, VkEventType
         global longpoll, vk_session, event_msg
@@ -177,7 +178,7 @@ class Vk():
                 raise ValueError('Ошибка создания клавиатуры (new_keyboard):\n=====\nНе правильно введен параметр "chats"\n=====')
         except:
             raise ValueError('Ошибка отправки клавиатуры (send_keyboard):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
-    (бот раньше не писал ему сообщения или не находится в беседе)\n=====')
+(бот раньше не писал ему сообщения или не находится в беседе)\n=====')
     
     def delete_keyboard(userid, msg='Клавиатура закрыта!', chats=False):
         from vk_api.keyboard import VkKeyboard
@@ -193,4 +194,15 @@ class Vk():
                 raise ValueError('Ошибка удаления клавиатуры (delete_keyboard):\n=====\nНе правильно введен параметр chats\n=====')
         except:
             raise ValueError('Ошибка удаления клавиатуры (delete_keyboard):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
-    (бот раньше не писал ему сообщения или не находится в беседе)\n=====')
+(бот раньше не писал ему сообщения или не находится в беседе)\n=====')
+    def mailing(text, userids, chats=False):
+        try: from threading import Thread
+        except: raise ValueError('Ошибка рассылки (mailing):\n=====\nНе установлен модуль threading (Всмысле, он же встроеный...)\n=====')
+        def r(text, userids):
+            try:
+                for i in userids:
+                    Vk.msg(text, i, chats)
+            except:
+                raise ValueError('Ошибка рассылки (mailing):\n=====\nПередан НЕ массив в значение userids или ошибка отправки сообщения\n=====')
+        t = Thread(target=r, args=(text, userids))
+        t.start()
