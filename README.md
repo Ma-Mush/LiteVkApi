@@ -196,7 +196,8 @@ while True:
     if Vk.check_new_msg():
         event = Vk.get_event()
         if event.text == 'Клавиатура':
-            kbrd = [{'Клавиатура':"синий"}, {'new_line':""}, {'Закрыть клавиатуру':'3'}, {'new_line':''}, {'open_link':[{'label':'Создатель библиотеки'}, {'link':'https://vk.com/maks.mushtriev2'}]}]
+            kbrd = [{'Клавиатура':"синий"}, {'new_line':""}, {'Закрыть клавиатуру':'3'}, 
+{'new_line':''}, {'open_link':[{'label':'Создатель библиотеки'}, {'link':'https://vk.com/maks.mushtriev2'}]}]
             keyboard = Vk.new_keyboard(kbrd)
             Vk.send_keyboard(keyboard, event.user_id, 'А вот и клавиатура!')
         elif event.text == 'Закрыть клавиатуру':
