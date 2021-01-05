@@ -219,8 +219,8 @@ while True:
 ```python
 from LiteVkApi import Vk
 Vk.login(твой ид, "твой токен")
-Ids = Vk.get_all_open_id()
-Vk.mailing('Рассылка!', Ids)
+mass_ids = Vk.get_all_open_id()
+Vk.mailing('Рассылка!', mass_ids)
 ```
 
 # Контакты
