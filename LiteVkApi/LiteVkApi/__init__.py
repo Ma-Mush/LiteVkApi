@@ -1,5 +1,5 @@
 # =============================================================================
-# Придумал и разработал - MaMush (vk.com/maks.mushtriev2 , t.me/Error_mak25
+# Придумал и разработал - MaMush (vk.com/maks.mushtriev2, t.me/Error_mak25)
 # Гитхаб - github.com/Ma-Mush/LiteVKApi
 # PypI - pypi.org/project/litevkapi/
 # =============================================================================
