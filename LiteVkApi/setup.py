@@ -240,7 +240,7 @@ Vk.mailing('Рассылка!', mass_ids)
 '''
 setup(
 name='LiteVkApi', 
-version='1.2',
+version='1.2.1',
 description='Библиотека для лекгого написания ботов ВК!', 
 packages=['LiteVkApi'], 
 author_email='ma_mush@mail.ru', 
