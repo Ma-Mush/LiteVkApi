@@ -17,7 +17,7 @@ class Vk():
     ts = ''
 
     def help():
-        print('     1. login <id_group> <token> <chats=False> <my_key=0> <my_server=0> <my_ts=0> - входит в бота по указанному ID группы и токену. Если бот для беседы - поставьте chats=True и укажите параметры подключения\n \
+        print('     1. login <id_group> <token> <userbot=False> <chats=False> <my_key=0> <my_server=0> <my_ts=0> - входит в бота по указанному ID группы и токену. Если бот для беседы - поставьте chats=True и укажите параметры подключения\n \
 2. get_session - возвращает в переменную сессию в Вконтакте, чтобы при необходимости использования чистого Vk_api не входить и не нагружать сервер второй раз. \n \
 3. give_session <session> - получает уже готовую Вк-сессию, если вы уже в нее вошли через vk_api или другие api для обхода login. \n \
 4. msg <text> <userid> <chats=False> - отправляет текст по указанному ID пользователя/чата, если он уже писал боту/бот состоит в беседе и имеет право писать сообщения. \n \
@@ -32,24 +32,29 @@ class Vk():
 13. get_all_message_data - возвращает в переменную массив со словарями. В словарях данные о последнем сообщении чата (беседы, ЛС) \n \
 14. get_all_open_id <message_data=None> - возвращает в переменную id всех чатов/пользователей которые писали боту/где он находится.')
 
-    def login(id_group, tok, chats=False, my_key=0, my_server=0, my_ts=0):
+    def login(id_group, tok, userbot=False, chats=False, my_key=0, my_server=0, my_ts=0):
         fun = 'help, login, get_session, give_session, msg, check_new_msg, get_event, send_photo, new_keyboard, send_keyboard, delete_keyboard, send_file, mailing, get_all_message_data, get_all_open_id.\n\
 Чтобы узнать подробнее о командах, вызовите функцию help - Vk.help()'
         global longpoll, vk, vk_session, server, ts, key
         import vk_api
-        vk_session = vk_api.VkApi(token = tok)
-        from vk_api.bot_longpoll import VkBotLongPoll
+        try: vk_session = vk_api.VkApi(token = tok)
+        except: raise ValueError('Ошибка авторизации (login):\n=====\nНе действительный токен или указан id вместо токена\n=====')
         vk = vk_session.get_api()
-        try:
-            longpoll = VkBotLongPoll(vk_session, id_group)
-        except: raise ValueError('Ошибка авторизации (login):\n=====\nНе правильно введен один из параметров: id_group, token\n=====')
-        if chats == True:
-            if my_key == 0 or my_server == 0 or my_ts == 0:
-                raise ValueError('Ошибка авторизации (login):\n=====\nУкажите значения key, server, ts! Их можно сгененировать тут - https://vk.com/dev/groups.getLongPollServer \n=====')
-            else:
-                key = my_key
-                server = my_server
-                ts = my_ts
+        if userbot:
+            from vk_api.longpoll import VkLongPoll
+            longpoll = VkLongPoll(vk_session)
+        else:
+            from vk_api.bot_longpoll import VkBotLongPoll
+            try:
+                longpoll = VkBotLongPoll(vk_session, id_group)
+            except: raise ValueError('Ошибка авторизации (login):\n=====\nНе правильно введен один из параметров: id_group, token\n=====')
+            if chats == True:
+                if my_key == 0 or my_server == 0 or my_ts == 0:
+                    raise ValueError('Ошибка авторизации (login):\n=====\nУкажите значения key, server, ts! Их можно сгененировать тут - https://vk.com/dev/groups.getLongPollServer \n=====')
+                else:
+                    key = my_key
+                    server = my_server
+                    ts = my_ts
         print('Привет! все мои функии: {}'.format(fun))
 
     def get_session():
@@ -57,16 +62,17 @@ class Vk():
         return vk_session
 
     def give_session(session):
-        global vk_session
+        global vk_session, vk
         vk_session = session
+        vk = vk_session.get_api()
 
     def msg(text, userid, chats=False):
         from vk_api.utils import get_random_id
         try:
             if chats == False:
-                vk.messages.send(user_id = userid, random_id = get_random_id(), message = text)
+                vk.messages.send(peer_id = userid, random_id = get_random_id(), message = text)
             elif chats == True:
-                vk.messages.send(key = key, server = server, ts = ts, chat_id = userid, random_id = get_random_id(), message = text)
+                vk.messages.send(key = key, server = server, ts = ts, peer_id = userid, random_id = get_random_id(), message = text)
             else:
                 raise ValueError('Ошибка отправки сообщения (msg):\n=====\nНе правильно введен параметр chats\n=====')
         except:
@@ -102,11 +108,11 @@ class Vk():
         attachment = 'photo{}_{}_{}'.format(photo['owner_id'], photo['id'], photo['access_key'])
         try:
             if chats == False:
-                if msg == None: vk.messages.send(user_id=userid, random_id = get_random_id(), attachment=attachment)
-                else: vk.messages.send(user_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
+                if msg == None: vk.messages.send(peer_id=userid, random_id = get_random_id(), attachment=attachment)
+                else: vk.messages.send(peer_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
             elif chats == True:
-                if msg == None: vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), attachment=attachment)
-                else: vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
+                if msg == None: vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), attachment=attachment)
+                else: vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
             else:
                 raise ValueError('Ошибка отправки фото (send_photo):\n=====\nНе правильно введен параметр chats\n=====')
         except:
@@ -121,11 +127,11 @@ class Vk():
         attachment = ('doc{}_{}'.format(mydoc['owner_id'], mydoc['id']))
         try:
             if chats == False:
-                if msg == None: vk.messages.send(user_id=userid, random_id = get_random_id(), attachment=attachment)
-                else: vk.messages.send(user_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
+                if msg == None: vk.messages.send(peer_id=userid, random_id = get_random_id(), attachment=attachment)
+                else: vk.messages.send(peer_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
             elif chats == True:
-                if msg == None: vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), attachment=attachment)
-                else: vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
+                if msg == None: vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), attachment=attachment)
+                else: vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), attachment=attachment, message = msg)
             else:
                 raise ValueError('Ошибка отправки файла (send_file):\n=====\nНе правильно введен параметр chats\n=====')
         except:
@@ -189,9 +195,9 @@ class Vk():
         from vk_api.utils import get_random_id
         try:
             if chats == False:
-                vk.messages.send(user_id = userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
+                vk.messages.send(peer_id = userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
             elif chats == True:
-                vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
+                vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
             else:
                 raise ValueError('Ошибка создания клавиатуры (new_keyboard):\n=====\nНе правильно введен параметр "chats"\n=====')
         except:
@@ -205,9 +211,9 @@ class Vk():
         keyboard.keyboard['buttons'] = []
         try:
             if chats == False:
-                vk.messages.send(user_id = userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
+                vk.messages.send(peer_id = userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
             elif chats == True:
-                vk.messages.send(key = key, server = server, ts = ts, chat_id=userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
+                vk.messages.send(key = key, server = server, ts = ts, peer_id=userid, random_id = get_random_id(), keyboard = keyboard.get_keyboard(), message = msg)
             else:
                 raise ValueError('Ошибка удаления клавиатуры (delete_keyboard):\n=====\nНе правильно введен параметр chats\n=====')
         except:
