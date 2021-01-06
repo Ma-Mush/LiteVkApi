@@ -57,8 +57,9 @@ class Vk():
         return vk_session
 
     def give_session(session):
-        global vk_session
+        global vk_session, vk
         vk_session = session
+        vk = vk_session.get_api()
 
     def msg(text, userid, chats=False):
         from vk_api.utils import get_random_id
