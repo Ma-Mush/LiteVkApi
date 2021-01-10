@@ -1,0 +1,6 @@
+# MacOS's
+.DS_Store
+
+# Setuped environ
+env/
+.idea/
