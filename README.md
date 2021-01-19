@@ -17,7 +17,7 @@ P.s. Если вы читаете это в PypI, то у вас могут не
 Vk = Vk.login(параметры)
 ```
 
-Теперь вы можете регистрировать одновременно сразу несколько ботов и использовать свои переменные в качестве заголовка функции (в документации рассмотрена переменная Vk).
+Теперь вы можете регистрировать одновременно сразу несколько ботов и использовать свои переменные в качестве объекта функции (в документации рассмотрена переменная Vk).
 
 Этот код:
 ```python
@@ -39,7 +39,7 @@ while True:
         vk_session.msg(event.text, event.user_id)
 ```
 
-### Обратите внимание, что не все функции должны принимать в качестве заголовка Вашу переменную!
+### Обратите внимание, что не все функции должны принимать в качестве объекта Вашу переменную!
 Так, функции Vk.login и Vk.give_session ВСЕГДА ДОЛЖНЫ БЫТЬ С "Vk"
 
 
@@ -50,11 +50,11 @@ while True:
 Рекомендую - from LiteVkApi import Vk (будет описана здесь), import LiteVkApi (придется использовать LiteVkApi.Vk._), < один из предыдущих вариантов > as < название > (вместо названия импортированного модуля можно использовать свое имя)
 
 ## _.help()
-Функция выведет в консоль информацию, которая описывает основное строение билиотеки, как с ней работать, что она может и так далее. В общем документация на минималках)
+Функция выведет в консоль информацию, которая описывает основное строение билиотеки, как с ней работать, что она может и так далее. Вообщем документация на минималках)
 
 ## Vk.Login(id_group, token, userbot=False, chats=False, my_key=0, my_server=0, my_ts=0) *
 
-### Функция ВСЕГДА имеет заголовок Vk
+### Функция ВСЕГДА имеет объект Vk
 Функция регистрирует вас на сервере ВКонтакте и с обновления 2.0 возвращает сессию в переменную.
 Параметры:
 Название  | Что это?
@@ -73,7 +73,7 @@ p.s. Для бесед не тестировал, возможны ошибки)
 
 ## Vk.give_session(session) *
 
-#### Функция ВСЕГДА имеет заголовок Vk
+#### Функция ВСЕГДА имеет объект Vk
 Регистрирует вашу сессию Вк, но только если вы уже входили через другие api и передали ее в параметр session (для vk_api сессия получается через session = vk_api.VkApi(token = токен))
 Параметры:
 Название  | Что это?
@@ -160,7 +160,7 @@ msg | Текст сообщения (по умолчанию без него)
 chat | Для беседы вы используете бота или нет (True / False)? По умолчанию False
 
 ## _.mailing(text, userids, safe=[], chats=False)
-Делает рассылку независимо от других действий (бот будет отвечать во время рассылки) при наличии функции многопоточности процессора.
+Делает рассылку независимо от других действий (бот будет отвечать во время рассылки).
 Параметры:
 Название  | Что это?
 ------------- | -------------
@@ -202,66 +202,66 @@ message_data | Данные, полученные с помощью get_all_mess
 Параметры:
 Название  | Что это?
 ------------- | -------------
-method_name | Название Вк-метода (все методы тут - https://vk.com/dev/methods )
+method_name | Назване Вк-метода (все методы тут - https://vk.com/dev/methods )
 arg | Параметры для метода в виде словаря
 
 # Примеры
 ## Отправка сообщения с тем же текстом, тому же пользователю, что и прислали нам:
 ```python
 from LiteVkApi import Vk
-Vk = Vk.login(твой ид, "твой токен")
+vk_session = Vk.login(твой ид, "твой токен")
 while True:
-    if Vk.check_new_msg():
-        event = Vk.get_event()
-        Vk.msg(event.text, event.user_id)
+    if vk_session.check_new_msg():
+        event = vk_session.get_event()
+        vk_session.msg(event.text, event.user_id)
 ```
 ## Простейший бот:
 ```python
 from LiteVkApi import Vk
-Vk = Vk.login(твой ид, "твой токен")
+vk_session = Vk.login(твой ид, "твой токен")
 while True:
-    if Vk.check_new_msg():
-        event = Vk.get_event()
+    if vk_session.check_new_msg():
+        event = vk_session.get_event()
         eventxt, userid = event.text, event.user_id
         if eventxt == 'Привет':
-            Vk.msg(f'Привет, {userid}', userid)
+            vk_session.msg(f'Привет, {userid}', userid)
         elif eventxt == 'Как дела?':
-            Vk.msg('Хорошо, а у тебя?', userid)
+            vk_session.msg('Хорошо, а у тебя?', userid)
 ```
 ## Создание, отправка и удаление клавиатуры:
 ```python
 from LiteVkApi import Vk
-Vk = Vk.login(твой ид, "твой токен")
+vk_session = Vk.login(твой ид, "твой токен")
 while True:
-    if Vk.check_new_msg():
-        event = Vk.get_event()
+    if vk_session.check_new_msg():
+        event = vk_session.get_event()
         if event.text == 'Клавиатура':
             kbrd = [{'Клавиатура':"синий"}, {'new_line':""}, {'Закрыть клавиатуру':'3'}, 
 {'new_line':''}, {'open_link':[{'label':'Создатель библиотеки'}, {'link':'https://vk.com/maks.mushtriev2'}]}]
-            keyboard = Vk.new_keyboard(kbrd)
-            Vk.send_keyboard(keyboard, event.user_id, 'А вот и клавиатура!')
+            keyboard = vk_session.new_keyboard(kbrd)
+            vk_session.send_keyboard(keyboard, event.user_id, 'А вот и клавиатура!')
         elif event.text == 'Закрыть клавиатуру':
-            Vk.delete_keyboard(event.user_id, 'Теперь клавиатура закрыта!')
+            vk_session.delete_keyboard(event.user_id, 'Теперь клавиатура закрыта!')
 ```
 ## Отправка файла и фото:
 ```python
 from LiteVkApi import Vk
-Vk = Vk.login(твой ид, "твой токен")
+vk_session = Vk.login(твой ид, "твой токен")
 while True:
-    if Vk.check_new_msg():
-        event = Vk.get_event()
+    if vk_session.check_new_msg():
+        event = vk_session.get_event()
         try:
-            Vk.send_photo(event.text, event.user_id, 'Отправляю фото...')
-            Vk.send_file(event.text, event.user_id, 'Отправляю файл...')
+            vk_session.send_photo(event.text, event.user_id, 'Отправляю фото...')
+            vk_session.send_file(event.text, event.user_id, 'Отправляю файл...')
         except:
-            Vk.msg('Не могу найти файл {} или указанный файл не является фотографией'.format(event.text), event.user_id)
+            vk_session.msg('Не могу найти файл {} или указанный файл не является фотографией'.format(event.text), event.user_id)
 ```
 ## Рассылка кому только можно
 ```python
 from LiteVkApi import Vk
-Vk = Vk.login(твой ид, "твой токен")
-mass_ids = Vk.get_all_open_id()
-Vk.mailing('Рассылка!', mass_ids)
+vk_session = Vk.login(твой ид, "твой токен")
+mass_ids = vk_session.get_all_open_id()
+vk_session.mailing('Рассылка!', mass_ids)
 ```
 
 # Контакты
