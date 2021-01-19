@@ -5,12 +5,9 @@
 # =============================================================================
 try:
     import vk_api
-except ImportError as err:
-    raise ImportError(
-        "Ошибка авторизации (login):\n"
-        "=====\nНе установлена библиотека "
-        "vk_api - pip3 install vk_api\n====="
-    ) from err
+except: raise ImportError(
+        "Ошибка авторизации (login):\n =====\nНе установлена библиотека vk_api - pip3 install vk_api\n====="
+    )
 
 from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -394,7 +391,7 @@ class Vk(object):
                 for i in userids:
                     try:
                         if i not in safe:
-                            Vk.msg(text, i, chats)
+                            Vk.msg(self, text, i, chats)
                     except:
                         1
             except:
