@@ -281,13 +281,9 @@ vk_session.mailing('Рассылка!', mass_ids)
 """
 
 
-with open("requirements.txt") as requirements:
-    requirements = requirements.read().split("\n")
-
-
 setup(
     name="LiteVkApi",
-    version="2.1",
+    version="2.1.1",
     description="Библиотека для лекгого написания ботов ВК!",
     packages=["LiteVkApi"],
     author_email="ma_mush@mail.ru",
@@ -295,5 +291,5 @@ setup(
     python_requires=">=3.6",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=requirements
+    install_requires= "vk-api==11.9.1"
 )
