@@ -232,13 +232,13 @@ while True:
 ```python
 from LiteVkApi import Vk
 vk_session = Vk.login(твой ид, "твой токен")
+kbrd = [{'Клавиатура':"синий"}, {'new_line':""}, {'Закрыть клавиатуру':'3'}, 
+{'new_line':''}, {'open_link':[{'label':'Создатель библиотеки'}, {'link':'https://vk.com/maks.mushtriev2'}]}]
+keyboard = vk_session.new_keyboard(kbrd)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
         if event.text == 'Клавиатура':
-            kbrd = [{'Клавиатура':"синий"}, {'new_line':""}, {'Закрыть клавиатуру':'3'}, 
-{'new_line':''}, {'open_link':[{'label':'Создатель библиотеки'}, {'link':'https://vk.com/maks.mushtriev2'}]}]
-            keyboard = vk_session.new_keyboard(kbrd)
             vk_session.send_keyboard(keyboard, event.user_id, 'А вот и клавиатура!')
         elif event.text == 'Закрыть клавиатуру':
             vk_session.delete_keyboard(event.user_id, 'Теперь клавиатура закрыта!')
