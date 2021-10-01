@@ -4,7 +4,7 @@
 # PypI - pypi.org/project/litevkapi/
 
 
-# Убрал help, лишние [], {} в клаве, LiteVkApiError, callback клава
+# Убрал chats кроме проверки сообщений, login токен и ид метами поменял, send_message, edit_message, аргументы в msg  
 # =============================================================================
 try:
     import vk_api
@@ -13,9 +13,14 @@ except: raise ImportError(
     )
 
 from vk_api.utils import get_random_id
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.bot_longpoll import VkBotLongPoll
 from threading import Thread
+
+class _keybord_for_send_if_None(): # Так было проще всего, просто поверьте
+    def get_keyboard(*arg):
+        pass
 
 class LiteVkApiError(Exception):
     pass
@@ -25,14 +30,66 @@ class Vk(object):
     def __init__(self, vk, vk_session, key, server, ts):
         self.vk, self.vk_session, self.key, self.server, self.ts, self.event_msg = vk, vk_session, key, server, ts, ""
 
+    def _upload_photo(self, file_names, peer):
+        if type(file_names) == str:
+            file_names = [file_names]
+        upload = vk_api.VkUpload(self.vk_session)
+        attachment = []
+        for file_name in file_names:
+            try:
+                photo = upload.photo_messages(file_name, peer_id=peer)[0]
+            except:
+                raise LiteVkApiError(
+                    f"Ошибка отправки фото:\n=====\nФото с именем {file_name} нет на компьютере!\n====="
+                )
+            attachment.append("photo{}_{}_{}".format(
+                photo["owner_id"], photo["id"], photo["access_key"]
+            ))
+        return attachment
+    
+    def _upload_file(self, file_names, peer):
+        if type(file_names) == str:
+            file_names = [file_names]
+        upload = vk_api.VkUpload(self.vk_session)
+        attachment = []
+        for file_name in file_names:
+            try:
+                mydoc = upload.document_message(file_name, peer_id=peer)["doc"]
+            except:
+                raise LiteVkApiError(
+                    f"Ошибка отправки файла (send_file):\n=====\nФайла с именем {file_name} нет на компьютере!\n====="
+                )
+            attachment.append("doc{}_{}".format(mydoc["owner_id"], mydoc["id"]))
+        return attachment
+    
+    def _color(self, keyboard, title, col, callback=False, payload=None):
+            col = col.upper()
+            m = [
+                ["POSITIVE", "3", "ЗЕЛЕНЫЙ"],
+                ["NEGATIVE", "2", "КРАСНЫЙ"],
+                ["SECONDARY", "1", "БЕЛЫЙ"],
+                ["PRIMARY", "0", "СИНИЙ"],
+            ]
+            if not callback:
+                button = keyboard.add_button
+            else:
+                button = keyboard.add_callback_button
+        
+            for i in range(len(m)):
+                if col in m[i]:
+                    button(title, color=getattr(VkKeyboardColor, m[i][0]), payload=payload)
+                    return 0
+            raise LiteVkApiError(
+                    "Ошибка создания клавиатуры (new_keyboard):\n=====\nНеправильно указан цвет/указан специальный объект клавиатуры\n====="
+                )
+
     def login(
-        id_group,
-        tok,
+        tok:str,
+        id_group:int=None,
         userbot=False,
-        chats=False,
-        my_key=0,
-        my_server=0,
-        my_ts=0,
+        my_key=None,
+        my_server=None,
+        my_ts=None,
     ):
         try:
             vk_session = vk_api.VkApi(token=tok)
@@ -46,61 +103,104 @@ class Vk(object):
                 VkLongPoll(vk_session)
             except:
                 raise LiteVkApiError(
-                    "Ошибка авторизации (login):\n=====\nНе правильно введен параметр token\n====="
+                    "Ошибка авторизации (login):\n=====\nНеправильно введен параметр token\n====="
                 )
         else:
             try:
                 VkBotLongPoll(vk_session, id_group)
             except:
                 raise LiteVkApiError(
-                    "Ошибка авторизации (login):\n=====\nНе правильно введен один из параметров: id_group, token\n====="
+                    "Ошибка авторизации (login):\n=====\nНеправильно введен один из параметров: id_group, token\n====="
                 )
-            if chats == True:
-                if my_key == 0 or my_server == 0 or my_ts == 0:
-                    raise LiteVkApiError(
-                        "Ошибка авторизации (login):\n=====\nУкажите значения key, server, ts! Их можно сгененировать тут - https://vk.com/dev/groups.getLongPollServer \n====="
-                    )
+            if my_key == 0 or my_server == 0 or my_ts == 0:
+                raise LiteVkApiError(
+                    "Ошибка авторизации (login):\n=====\nУкажите значения key, server, ts! Их можно сгененировать тут - https://vk.com/dev/groups.getLongPollServer \n====="
+                )
         
         return Vk(vk, vk_session, my_key, my_server, my_ts) # Я знаю, что это ужасно, но не хочу отходить от Vk.login()
 
     def get_session(self):
         return self.vk_session
 
-    def give_session(session, my_key=0, my_server=0, my_ts=0):
+    def give_session(session, my_key=None, my_server=None, my_ts=None):
         vk = session.get_api()
         return Vk(vk, session, my_key, my_server, my_ts)
 
-    def msg(self, text, userid, chats=False):
-        def _sysmsg_(**k):
-            def _sysmsg2_(**k):
-                self.vk.messages.send(**k)
-            t = Thread(target=_sysmsg2_, kwargs=k)
-            t.start()
+    def msg(
+        self, 
+        text:str, 
+        userid:int or str,
+        photo:list or tuple or set=[], 
+        files:list or tuple or set=[], 
+        keyboard=None,
+        reply_to:int=None
+    ):
+        if photo != []:
+            photo = self._upload_photo(photo, userid)
+        if files != []:
+            files = self._upload_file(files, userid)
+        if keyboard == None:
+            keyboard = _keybord_for_send_if_None()
         try:
-            if chats == False:
-                _sysmsg_(
-                    peer_id=userid, random_id=get_random_id(), message=text
-                )
-            elif chats == True:
-                _sysmsg_(
-                    key=self.key,
-                    server=self.server,
-                    ts=self.ts,
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    message=text,
-                )
-            else:
-                raise LiteVkApiError(
-                    "Ошибка отправки сообщения (msg):\n=====\nНе правильно введен параметр chats\n====="
-                )
+            return self.vk.messages.send(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                message=text,
+                peer_id=userid,
+                random_id=get_random_id(),
+                attachment=photo + files,
+                keyboard=keyboard.get_keyboard(),
+                reply_to=reply_to)
         except:
             raise LiteVkApiError(
-                "Ошибка отправки сообщения (msg):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
+                "Ошибка отправки сообщения (msg):\n=====\nНеправильно введен параметр userid/диалог с пользователем не обозначен\
 (бот раньше не писал ему сообщения или не находится в беседе)\n====="
             )
 
-    def check_new_msg(self, chat=False):
+    def send_message(
+        self, 
+        text:str, 
+        userid:int or str,
+        photos:list or tuple or set=[], 
+        files:list or tuple or set=[], 
+        keyboard=None,
+        reply_to:int=None
+        ): # Кому удобнее так, чем msg
+        return self.msg(text=text, userid=userid, photos=photos, files=files, keyboard=keyboard, reply_to=reply_to)
+    
+    def edit_message(
+        self, 
+        text:str, 
+        userid:int or str, 
+        messid:int, 
+        photo:list or tuple or set=[], 
+        files:list or tuple or set=[], 
+        keyboard=None
+    ):
+        if photo != []:
+            photo = self._upload_photo(photo, userid)
+        if files != []:
+            files = self._upload_file(files, userid)
+        if keyboard == None:
+            keyboard = _keybord_for_send_if_None()
+        try:    
+            return self.vk.messages.edit(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                message=text,
+                peer_id=userid,
+                message_id=messid,
+                attachment=photo + files,
+                keyboard=keyboard.get_keyboard(),
+            )
+        except:
+            raise LiteVkApiError(
+                "Ошибка изменения сообщения (edit_message):\n=====\nНеправильно введены параметры\n====="
+            )
+
+    def check_new_msg(self, chat:bool=False):
         longpoll = VkLongPoll(self.vk_session)
         if not chat:
             for event in longpoll.listen():
@@ -114,150 +214,48 @@ class Vk(object):
                     return True
         else:
             raise LiteVkApiError(
-                "Ошибка поиска сообщений (check_new_msg):\n=====\nНе правильно введен параметр chats\n====="
+                "Ошибка поиска сообщений (check_new_msg):\n=====\nНеправильно введен параметр chats\n====="
             )
 
     def get_event(self):
         return self.event_msg
-    
-    def send_photo(self, file_name, userid, msg=None, chats=False):
-        upload = vk_api.VkUpload(self.vk_session)
-        try:
-            photo = upload.photo_messages(file_name)[0]
-        except:
-            raise LiteVkApiError(
-                f"Ошибка отправки фото (send_photo):\n=====\nФото с именем {file_name} нет на компьютере!\n====="
-            )
-        attachment = "photo{}_{}_{}".format(
-            photo["owner_id"], photo["id"], photo["access_key"]
-        )
-        
-        def _sysmsg_(**k):
-            def _sysmsg2_(**k):
-                self.vk.messages.send(**k)
-            t = Thread(target=_sysmsg2_, kwargs=k)
-            t.start()
-        
-        try:
-            if not chats:
-                if msg == None:
-                    _sysmsg_(
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                    )
-                else:
-                    _sysmsg_(
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                        message=msg,
-                    )
-            elif chats:
-                params = dict(
-                    key=self.key,
-                    server=self.server,
-                    ts=self.ts,
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    attachment=attachment,
-                )
-                if msg is not None:
-                    params.update(message=msg)
 
-                _sysmsg_(**params)
-            else:
-                raise LiteVkApiError(
-                    "Ошибка отправки фото (send_photo):\n=====\nНе правильно введен параметр chats\n====="
-                )
+    def send_photo(self, file_names:list or set or tuple, userid:int or str, msg:str=None):
+        attachment = self._upload_photo(file_names, userid)
+        try:
+            return self.vk.messages.send(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                peer_id=userid,
+                message=msg,
+                random_id=get_random_id(),
+                attachment=attachment,
+            )
         except:
             raise LiteVkApiError(
-                "Ошибка отправки фото (send_photo):\n=====\nНе правильно введен один из параметров отправки сообщений\n====="
+                "Ошибка отправки фото (send_photo):\n=====\nНеправильно введен один из параметров отправки сообщений\n====="
             )
 
-    def send_file(self, file_name, userid, msg=None, chats=False):
-        upload = vk_api.VkUpload(self.vk_session)
+    def send_file(self, file_names, userid, msg=None):
+        attachment = self._upload_file(file_names, userid)
         try:
-            mydoc = upload.document_message(file_name, peer_id=userid)["doc"]
-        except:
-            raise LiteVkApiError(
-                f"Ошибка отправки файла (send_file):\n=====\nФайла с именем {file_name} нет на компьютере!\n====="
+            return self.vk.messages.send(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                peer_id=userid,
+                message=msg,
+                random_id=get_random_id(),
+                attachment=attachment
             )
-        attachment = "doc{}_{}".format(mydoc["owner_id"], mydoc["id"])
-        def _sysmsg_(**k):
-            def _sysmsg2_(**k):
-                self.vk.messages.send(**k)
-            t = Thread(target=_sysmsg2_, kwargs=k)
-            t.start()
-        try:
-            if not chats:
-                if msg == None:
-                    _sysmsg_(
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                    )
-                else:
-                    _sysmsg_(
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                        message=msg,
-                    )
-            elif chats:
-                if msg is None:
-                    _sysmsg_(
-                        key=self.key,
-                        server=self.server,
-                        ts=self.ts,
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                    )
-                else:
-                    _sysmsg_(
-                        key=self.key,
-                        server=self.server,
-                        ts=self.ts,
-                        peer_id=userid,
-                        random_id=get_random_id(),
-                        attachment=attachment,
-                        message=msg,
-                    )
-            else:
-                raise LiteVkApiError(
-                    "Ошибка отправки файла (send_file):\n=====\nНе правильно введен параметр chats\n====="
-                )
         except:
             raise LiteVkApiError(
-                "Ошибка отправки файла (send_file):\n=====\nНе правильно введен один из параметров отправки сообщений\n====="
+                "Ошибка отправки файла (send_file):\n=====\nНеправильно введен один из параметров отправки сообщений\n====="
             )
 
-    def new_keyboard(self, dicts, perm=True):
-        from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-        
+    def new_keyboard(self, dicts:dict, perm:bool=True):        
         keyboard = VkKeyboard(one_time=(not perm))
-
-        def color(title, col, callback=False, payload=None):
-            col = col.upper()
-            m = [
-                ["POSITIVE", "3", "ЗЕЛЕНЫЙ"],
-                ["NEGATIVE", "2", "КРАСНЫЙ"],
-                ["SECONDARY", "1", "БЕЛЫЙ"],
-                ["PRIMARY", "0", "СИНИЙ"],
-            ]
-            if not callback:
-                method = keyboard.add_button
-            else:
-                method = keyboard.add_callback_button
-        
-            for i in range(len(m)):
-                if col in m[i]:
-                    method(title, color=getattr(VkKeyboardColor, m[i][0]), payload=payload)
-                    return 0
-            raise LiteVkApiError(
-                    "Ошибка создания клавиатуры (new_keyboard):\n=====\nНеправильно указан цвет/указан специальный объект клавиатуры\n====="
-                )
         try:
             for i in dicts.keys():
                 if i == "new_line":
@@ -293,92 +291,60 @@ class Vk(object):
                             col = value
                         elif key == "payload":
                             payload = value
-                    color(label, col, True, payload)
+                    self._color(keyboard, label, col, True, payload)
                 else:
-                    color(i, dicts[i])
-        except Exception as e:
+                    self._color(keyboard, i, dicts[i])
+        except Exception:
             raise LiteVkApiError(
                 "Ошибка создания клавиатуры (new_keyboard):\n=====\nНеправильно указан один из параметров клавиатуры\n====="
             )
         return keyboard
 
-    def send_keyboard(self, keyboard, userid, msg="Клавиатура!", chats=False):
-        def _sysmsg_(**k):
-            def _sysmsg2_(**k):
-                self.vk.messages.send(**k)
-            t = Thread(target=_sysmsg2_, kwargs=k)
-            t.start()
+    def send_keyboard(self, keyboard, userid:int or str, msg:str="Клавиатура!"):
         try:
-            if chats:
-                _sysmsg_(
-                    key=self.key,
-                    server=self.server,
-                    ts=self.ts,
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=msg,
-                )
-            
-            else:
-                _sysmsg_(
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=msg,
-                )
+            return self.vk.messages.send(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                peer_id=userid,
+                message=msg,
+                random_id=get_random_id(),
+                keyboard=keyboard.get_keyboard()
+            )
         except:
             raise LiteVkApiError(
-                "Ошибка отправки клавиатуры (send_keyboard):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
+                "Ошибка отправки клавиатуры (send_keyboard):\n=====\nНеправильно введен параметр userid/диалог с пользователем не обозначен\
 (бот раньше не писал ему сообщения или не находится в беседе)\n====="
             )
 
-    def delete_keyboard(self, userid, msg="Клавиатура закрыта!", chats=False):
-        from vk_api.keyboard import VkKeyboard
-        from vk_api.utils import get_random_id
-        
+    def delete_keyboard(self, userid:int or str, msg:str="Клавиатура закрыта!"):        
         keyboard = VkKeyboard(one_time=True)
         keyboard.keyboard["buttons"] = []
-        
-        def _sysmsg_(**k):
-            def _sysmsg2_(**k):
-                self.vk.messages.send(**k)
-            t = Thread(target=_sysmsg2_, kwargs=k)
-            t.start()
-        
         try:
-            if chats:
-                _sysmsg_(
-                    key=self.key,
-                    server=self.server,
-                    ts=self.ts,
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=msg,
-                )
-            else:
-                _sysmsg_(
-                    peer_id=userid,
-                    random_id=get_random_id(),
-                    keyboard=keyboard.get_keyboard(),
-                    message=msg,
-                )
+            return self.vk.messages.send(
+                key=self.key,
+                server=self.server,
+                ts=self.ts,
+                peer_id=userid,
+                message=msg,
+                random_id=get_random_id(),
+                keyboard=keyboard.get_keyboard(),
+            )
         except:
             raise LiteVkApiError(
-                "Ошибка удаления клавиатуры (delete_keyboard):\n=====\nНе правильно введен параметр userid/диалог с пользователем не обозначен\
+                "Ошибка удаления клавиатуры (delete_keyboard):\n=====\nНеправильно введен параметр userid/диалог с пользователем не обозначен\
 (бот раньше не писал ему сообщения или не находится в беседе)\n====="
             )
 
-    def mailing(self, text, userids, safe=[], chats=False):
+    def mailing(self, text:str, userids:list or set or tuple, safe:list=[]):
         def r(text, userids):
             try:
                 for i in userids:
                     try:
                         if i not in safe:
-                            Vk.msg(self, text, i, chats)
+                            Vk.msg(self, text, i)
                     except:
-                        1
+                        pass
             except:
                 raise LiteVkApiError(
                     "Ошибка рассылки (mailing):\n=====\nПередан НЕ массив в значение userids или ошибка отправки сообщения\n====="
