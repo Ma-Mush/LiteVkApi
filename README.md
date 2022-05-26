@@ -1,7 +1,8 @@
 # LiteVkApi
 Бот в Вк? Легко!
 
-Pypi - https://pypi.org/project/LiteVkApi/
+Pypi - https://pypi.org/project/LiteVkApi/ <br>
+[![Downloads](https://pepy.tech/badge/litevkapi)](https://pepy.tech/project/litevkapi)
 
 # КРАТКАЯ ДОКУМЕНТАЦИЯ
 Привет! Эта библиотека создана для быстрого написания ботов (преимущественно ЛС) в ВК. Мне захотелось, чтобы ботов писать было быстро и легко, поэтому я сделал удобную библиотеку с самыми популярными функциями vk_api. Сейчас я расскажу вам о ней!
