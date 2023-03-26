@@ -5,6 +5,7 @@ Pypi - https://pypi.org/project/LiteVkApi/
 
 [![Downloads](https://pepy.tech/badge/litevkapi)](https://pepy.tech/project/litevkapi)
 
+
 # КРАТКАЯ ДОКУМЕНТАЦИЯ
 Привет! Эта библиотека создана для быстрого написания ботов (преимущественно ЛС) в ВК. Мне захотелось, чтобы ботов писать было быстро и легко, поэтому я сделал удобную библиотеку с самыми популярными функциями vk_api. Сейчас я расскажу вам о ней!
 
@@ -17,17 +18,10 @@ P.s. Если вы читаете это в PypI, то у вас могут не
 Рекомендую - from LiteVkApi import Client (будет описана здесь), import LiteVkApi (придется использовать LiteVkApi.Client._), < один из предыдущих вариантов > as < название > (вместо названия импортированного модуля можно использовать свое имя)
 
 <br>======
- <details>  <summary> Что нового в обновлении 2.4</summary> 
+ <details>  <summary> Что нового в обновлении 2.4.2</summary> 
 
-- ### Переработка клавиатуры
-    Теперь она генерируется специальным классом Keyboard и по отдельны кнопкам (класс Button), подробнее читайте в соответсвующих разделах ниже.
-
-- ### Класс Vk теперь называется Client
-    Я все больше беру пример с библиотеки Telethon :)
-
-- ### Исправлены мелкие ошибки, переработаны некоторые части кода библиотеки
-
-- ### Переработа документация
+### - Изменены параметры фунцкий Client.check_new_msg и Client.check_new_events
+Теперь они принимают параметр botlongpoll (True/False, по умолчанию - False). Он определяет, использовать ЛонгПул для ботов или общий. Разница в том, что у общего привычный формат возращения событий - event.text и тд. ЛонгПул для ботов же имеет бОльшие возможности. Так, с его помощью можно получать отвтеты на callback кнопки с полезной нагрузкой (payload), такие как snack_bar. Но и формат ответа для "традиционных" типов событий у них другой. Так, при получении сообщения его текст будет записан в event.message.text. Пример кода с кнопкой и обработкой сообщений будет в соответсвующем разделе внизу документации.
 
 
 </details> 
@@ -104,23 +98,23 @@ P.s. Если вы читаете это в PypI, то у вас могут не
 
     </details> 
 
-* ## _.check_new_msg(chat)
+* ## _.check_new_msg(botlongpoll)
     Используется для проверки новых сообщений (возвращает True / False)
     <details> <summary>Параметры</summary>
 
     Название  | Что это?
     ------------- | -------------
-    chat | Для беседы вы используете бота или нет (True / False)? По умолчанию False
+    botlongpoll | Использовать ЛонгПул для ботов или общий (True / False)? По умолчанию False
 
     </details> 
 
-* ## _.check_new_events(chat)
+* ## _.check_new_events(botlongpoll)
     Используется для проверки любых новых событий (а не только сообщений, как в check_new_msg). В остальном - аналогичная функция. (возвращает True / False)
     <details> <summary>Параметры</summary>
 
     Название  | Что это?
     ------------- | -------------
-    chat | Для беседы вы используете бота или нет (True / False)? По умолчанию False
+    botlongpoll | Использовать ЛонгПул для ботов или общий (True / False)? По умолчанию False
 
     </details> 
     
@@ -360,6 +354,36 @@ from LiteVkApi import Vk
 vk_session = Vk.login("твой токен", твой ид)
 mass_ids = vk_session.get_all_open_id()
 vk_session.mailing('Рассылка!', mass_ids)
+```
+## Использование BotLongPoll с callback кнопкой
+```python
+from LiteVkApi import Client, Keyboard, Button 
+from vk_api.bot_longpoll import VkBotEventType 
+import json 
+ 
+vk_session = Client.login("твой токен", айди группы, True) 
+vk = vk_session.vk
+
+keyboard = Keyboard(True, True, [[Button.text("Клавиатура", "3")], [Button.text("Закрыть клавиатуру", "1")], [Button.text("Создатель библиотеки", "2", True, {"type": "show_snackbar", "text": "MaMush"})]]) 
+
+while True: 
+    if vk_session.check_new_events(True):
+        event = vk_session.get_event() 
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            eventxt, userid = event.message.text.lower(), event.message.from_id
+            if eventxt == 'привет': 
+                vk_session.msg(f'Привет, {userid}', userid) 
+                vk_session.send_keyboard(keyboard, userid, 'А вот и клавиатура!') 
+        if event.type == VkBotEventType.MESSAGE_EVENT: 
+            vk_session.VkMethod(
+                "messages.sendMessageEventAnswer", 
+                    {
+                    "event_id":event.object.event_id, 
+                    "user_id":event.object.user_id, 
+                    "peer_id":event.object.peer_id,  
+                    "event_data":json.dumps(event.object.payload)
+                    }
+                )
 ```
 
 # Контакты
