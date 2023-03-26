@@ -1,8 +1,7 @@
 # LiteVkApi
 Бот в Вк? Легко!
 
-Pypi - https://pypi.org/project/LiteVkApi/ <br>
-[![Downloads](https://pepy.tech/badge/litevkapi)](https://pepy.tech/project/litevkapi)
+Pypi - https://pypi.org/project/LiteVkApi/
 
 # КРАТКАЯ ДОКУМЕНТАЦИЯ
 Привет! Эта библиотека создана для быстрого написания ботов (преимущественно ЛС) в ВК. Мне захотелось, чтобы ботов писать было быстро и легко, поэтому я сделал удобную библиотеку с самыми популярными функциями vk_api. Сейчас я расскажу вам о ней!
@@ -50,6 +49,7 @@ P.s. Если вы читаете это в PypI, то у вас могут не
     token | Токен сообщества в виде строки (например 'a244f42a6eaec65dbeh1ee13aab8ce7355311448868357e545c27cd648025c8a31ee66f4528a0a4ca98be')
     id_group | id группы в числовом виде (например 200397283), если используется юзер-бот - любое число или None (нужен, только если вы используете токен группы)
     userbot | Для страницы (а не для группы) вы используете бота? (True/False) По умолчанию False
+    get_session | Если True - возвращает сессию в переменную (для удобства использования вместе vk_api). По умолчанию False
     ост. | Настройки для беседы, узать тут - https://vk.com/dev/groups.getLongPollServer
 
     </details>
@@ -104,6 +104,16 @@ P.s. Если вы читаете это в PypI, то у вас могут не
 
 * ## _.check_new_msg(chat)
     Используется для проверки новых сообщений (возвращает True / False)
+    <details> <summary>Параметры</summary>
+
+    Название  | Что это?
+    ------------- | -------------
+    chat | Для беседы вы используете бота или нет (True / False)? По умолчанию False
+
+    </details> 
+
+* ## _.check_new_events(chat)
+    Используется для проверки любых новых событий (а не только сообщений, как в check_new_msg). В остальном - аналогичная функция. (возвращает True / False)
     <details> <summary>Параметры</summary>
 
     Название  | Что это?
@@ -331,8 +341,8 @@ while True:
 ```
 ## Отправка файла и фото:
 ```python
-from LiteVkApi import Client
-vk_session = Client.login("твой токен", твой ид)
+from LiteVkApi import Vk
+vk_session = Vk.login("твой токен", твой ид)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
@@ -344,8 +354,8 @@ while True:
 ```
 ## Рассылка кому только можно
 ```python
-from LiteVkApi import Client
-vk_session = Client.login("твой токен", твой ид)
+from LiteVkApi import Vk
+vk_session = Vk.login("твой токен", твой ид)
 mass_ids = vk_session.get_all_open_id()
 vk_session.mailing('Рассылка!', mass_ids)
 ```
