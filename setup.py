@@ -11,7 +11,7 @@ long_description = """
 
 setup(
     name="LiteVkApi",
-    version="2.4",
+    version="2.4.2",
     description="Библиотека для легкого написания ботов ВК!",
     packages=["LiteVkApi"],
     author_email="ma_mush@mail.ru",
