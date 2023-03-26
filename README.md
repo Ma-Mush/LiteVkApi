@@ -1,6 +1,7 @@
 # LiteVkApi
 Бот в Вк? Легко!
 
+[![Downloads](https://pepy.tech/badge/litevkapi)](https://pepy.tech/project/litevkapi)
 Pypi - https://pypi.org/project/LiteVkApi/
 
 # КРАТКАЯ ДОКУМЕНТАЦИЯ
