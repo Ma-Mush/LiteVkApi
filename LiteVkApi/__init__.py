@@ -234,20 +234,17 @@ class Client(object):
 
     def check_new_msg(self, chat:bool=False):
         longpoll = VkLongPoll(self.vk_session)
-        if not chat:
-            for event in longpoll.listen():
-                if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                    self.event_msg = event
-                    return True
-        elif chat:
-            for event in longpoll.listen():
-                if event.type == VkEventType.MESSAGE_NEW:
-                    self.event_msg = event
-                    return True
-        else:
-            raise LiteVkApiError(
-                "Ошибка поиска сообщений (check_new_msg):\n=====\nНеправильно введен параметр chats\n====="
-            )
+        for event in longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and (event.to_me or not chat):
+                self.event_msg = event
+                return True
+
+    def check_new_events(self, chat:bool=False):
+        longpoll = VkLongPoll(self.vk_session)
+        for event in longpoll.listen():
+            if event.to_me or not chat:
+                self.event_msg = event
+                return True
 
     def get_event(self):
         return self.event_msg
