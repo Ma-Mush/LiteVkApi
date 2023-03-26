@@ -6,7 +6,7 @@ except ImportError: raise ImportError(
 
 from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.bot_longpoll import VkBotLongPoll
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from threading import Thread
 from json import dumps
 from dataclasses import dataclass
@@ -84,8 +84,9 @@ class EmptyKeyboard():
     keyboard_close = '{"buttons":[],"one_time":true}'
 
 class Client(object):
-    def __init__(self, vk, vk_session, key, server, ts):
+    def __init__(self, vk, vk_session, key, server, ts, id_group=None):
         self.vk, self.vk_session, self.key, self.server, self.ts, self.event_msg = vk, vk_session, key, server, ts, ""
+        self.longpoll, self.botlongpoll, self.id_group = None, None, id_group
 
     def _upload_photo(self, file_names, peer):
         if type(file_names) == str:
@@ -153,7 +154,7 @@ class Client(object):
                     "Ошибка авторизации (login):\n=====\nУкажите значения key, server, ts! Их можно сгененировать тут - https://vk.com/dev/groups.getLongPollServer \n====="
                 )
         
-        return Client(vk, vk_session, my_key, my_server, my_ts) # Я знаю, что это ужасно, но не хочу отходить от Client.login()
+        return Client(vk, vk_session, my_key, my_server, my_ts, id_group) # Я знаю, что это ужасно, но не хочу отходить от Client.login()
 
     def get_session(self):
         return self.vk_session
@@ -232,19 +233,28 @@ class Client(object):
                 "Ошибка изменения сообщения (edit_message):\n=====\nНеправильно введены параметры\n====="
             )
 
-    def check_new_msg(self, chat:bool=False):
-        longpoll = VkLongPoll(self.vk_session)
+    def _get_longpoll(self, botlongpoll:bool=False):
+        if botlongpoll:
+            if self.botlongpoll is None:
+                self.botlongpoll = VkBotLongPoll(self.vk_session, self.id_group)
+            return self.botlongpoll
+        else:
+            if self.longpoll is None:
+                self.longpoll = VkLongPoll(self.vk_session)
+            return self.longpoll
+
+    def check_new_msg(self, botlongpoll:bool=False):
+        longpoll = self._get_longpoll(botlongpoll)
         for event in longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW and (event.to_me or not chat):
+            if event.type == VkEventType.MESSAGE_NEW or event.type == VkBotEventType.MESSAGE_NEW:
                 self.event_msg = event
                 return True
 
-    def check_new_events(self, chat:bool=False):
-        longpoll = VkLongPoll(self.vk_session)
+    def check_new_events(self, botlongpoll:bool=False):
+        longpoll = self._get_longpoll(botlongpoll)
         for event in longpoll.listen():
-            if event.to_me or not chat:
-                self.event_msg = event
-                return True
+            self.event_msg = event
+            return True
 
     def get_event(self):
         return self.event_msg
