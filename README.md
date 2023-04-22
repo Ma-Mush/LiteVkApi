@@ -324,7 +324,7 @@ while True:
 ```
 ## Создание, отправка и удаление клавиатуры:
 ```python
-from LiteVkApi import Client, Keyboard
+from LiteVkApi import Client, Keyboard, Button
 vk_session = Client.login("твой токен", твой ид)
 keyboard = Keyboard(True, False, [[Button.text("Клавиатура", "синий")], [Button.text("Закрыть клавиатуру", "синий")], [Button.url("Создатель библиотеки", "https://vk.com/maks.mushtriev2")]])
 while True:
@@ -337,8 +337,8 @@ while True:
 ```
 ## Отправка файла и фото:
 ```python
-from LiteVkApi import Vk
-vk_session = Vk.login("твой токен", твой ид)
+from LiteVkApi import Client
+vk_session = Client.login("твой токен", твой ид)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
