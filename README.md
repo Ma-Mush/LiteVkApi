@@ -350,8 +350,8 @@ while True:
 ```
 ## Рассылка кому только можно
 ```python
-from LiteVkApi import Vk
-vk_session = Vk.login("твой токен", твой ид)
+from LiteVkApi import Client
+vk_session = Client.login("твой токен", твой ид)
 mass_ids = vk_session.get_all_open_id()
 vk_session.mailing('Рассылка!', mass_ids)
 ```
