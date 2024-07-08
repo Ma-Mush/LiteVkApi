@@ -392,7 +392,5 @@ while True:
 
 Мой блог - [Telegram](https://t.me/mamush_blog),  [VK](https://vk.com/mamush_blog)
 
-Донат - [Киви, оплата кошельком/номером телефона/любой картой без комиссии (тык)](https://qiwi.com/n/NADEZNIEINVEST)
-
 
 ### Удачи!
