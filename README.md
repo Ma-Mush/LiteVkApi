@@ -307,6 +307,8 @@ vk_session = Client.login("твой токен", твой ид)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
+        if event.from_me: 
+            continue
         vk_session.msg(event.text, event.user_id)
 ```
 ## Простейший бот:
@@ -316,6 +318,8 @@ vk_session = Client.login("твой токен", твой ид)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
+        if event.from_me: 
+            continue
         eventxt, userid = event.text, event.user_id
         if eventxt == 'Привет':
             vk_session.msg(f'Привет, {userid}', userid)
@@ -330,6 +334,8 @@ keyboard = Keyboard(True, False, [[Button.text("Клавиатура", "сини
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
+        if event.from_me: 
+            continue
         if event.text == 'Клавиатура':
             vk_session.send_keyboard(keyboard, event.user_id, 'А вот и клавиатура!')
         elif event.text == 'Закрыть клавиатуру':
@@ -342,6 +348,8 @@ vk_session = Client.login("твой токен", твой ид)
 while True:
     if vk_session.check_new_msg():
         event = vk_session.get_event()
+        if event.from_me: 
+            continue
         try:
             vk_session.send_photo([event.text], event.user_id, 'Отправляю фото...')
             vk_session.send_file([event.text], event.user_id, 'Отправляю файл...')
@@ -368,7 +376,9 @@ keyboard = Keyboard(True, True, [[Button.text("Клавиатура", "3")], [Bu
 
 while True: 
     if vk_session.check_new_events(True):
-        event = vk_session.get_event() 
+        event = vk_session.get_event()
+        if event.from_me: 
+            continue
         if event.type == VkBotEventType.MESSAGE_NEW:
             eventxt, userid = event.message.text.lower(), event.message.from_id
             if eventxt == 'привет': 
